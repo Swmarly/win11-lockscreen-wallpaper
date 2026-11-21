@@ -17,7 +17,7 @@ if (-not (Get-PSDrive -Name Cert -ErrorAction SilentlyContinue)) {
 $Subject     = 'CN=LockScreenWallpaper Local Dev'
 $RepoRoot    = Split-Path $PSScriptRoot -Parent
 $ProjectPath = Join-Path $RepoRoot 'src\LockScreenWallpaper\LockScreenWallpaper.csproj'
-$PublishDir  = Join-Path $RepoRoot 'src\LockScreenWallpaper\bin\Release\net8.0-windows\publish'
+$PublishDir  = Join-Path $RepoRoot 'src\LockScreenWallpaper\bin\Release\net8.0-windows10.0.19041.0\publish'
 $ExePath     = Join-Path $PublishDir 'LockScreenWallpaper.exe'
 
 $cert = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq $Subject } | Select-Object -First 1

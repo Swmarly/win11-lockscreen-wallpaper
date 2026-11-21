@@ -12,7 +12,9 @@ internal sealed class OverlayForm : Form
 {
     private readonly Image? _image;
 
-    public OverlayForm(Rectangle monitorBounds, string? imagePath)
+    private readonly bool _ownsImage;
+
+    public OverlayForm(Rectangle monitorBounds, Image? lockScreenImage, string? imagePath)
     {
         // Manual painting instead of BackgroundImage/BackgroundImageLayout: WinForms'
         // built-in layouts only offer "contain" (Zoom, letterboxed) or distort (Stretch),
@@ -29,9 +31,11 @@ internal sealed class OverlayForm : Form
         Bounds = monitorBounds;
         Cursor = Cursors.Default;
 
-        if (imagePath is not null)
+        _image = lockScreenImage;
+        if (_image is null && imagePath is not null)
         {
             _image = LoadImageWithoutLocking(imagePath);
+            _ownsImage = true;
         }
 
         ResumeLayout(false);
@@ -95,7 +99,7 @@ internal sealed class OverlayForm : Form
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing)
+        if (disposing && _ownsImage)
         {
             _image?.Dispose();
         }

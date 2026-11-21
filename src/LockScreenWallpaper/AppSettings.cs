@@ -15,6 +15,8 @@ internal sealed class AppSettings
     // Keyed by Screen.DeviceName (e.g. "\\.\DISPLAY2") for monitors that should show a distinct image.
     public Dictionary<string, string> PerMonitorImages { get; set; } = new();
 
+    public bool SyncLockScreenWallpaper { get; set; } = true;
+
     public bool RunAtStartup { get; set; }
 
     public static AppSettings Load()
