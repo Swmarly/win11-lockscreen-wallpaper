@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using Windows.System.UserProfile;
 
 namespace LockScreenWallpaper;
 
@@ -10,6 +11,7 @@ internal sealed class OverlayManager : IDisposable
     private readonly List<OverlayForm> _overlays = new();
     private readonly System.Windows.Forms.Timer _rebuildDebounceTimer;
     private AppSettings? _activeSettings;
+    private Image? _lockScreenImage;
     private bool _isRebuilding;
 
     public OverlayManager()
@@ -63,15 +65,18 @@ internal sealed class OverlayManager : IDisposable
         {
             HideAllCore();
 
-            foreach (var screen in Screen.AllScreens)
+            var secondaryScreens = Screen.AllScreens.Where(screen => !screen.Primary).ToArray();
+            if (settings.SyncLockScreenWallpaper && secondaryScreens.Length > 0)
             {
-                if (screen.Primary)
-                    continue; // The real lock/sign-in screen already renders here.
+                _lockScreenImage = LoadLockScreenImage();
+            }
 
+            foreach (var screen in secondaryScreens)
+            {
                 try
                 {
                     var imagePath = settings.ResolveImageFor(screen.DeviceName);
-                    var overlay = new OverlayForm(screen.Bounds, imagePath);
+                    var overlay = new OverlayForm(screen.Bounds, _lockScreenImage, imagePath);
                     _overlays.Add(overlay);
                     overlay.Show();
                 }
@@ -87,6 +92,22 @@ internal sealed class OverlayManager : IDisposable
         finally
         {
             _isRebuilding = false;
+        }
+    }
+
+    private static Image? LoadLockScreenImage()
+    {
+        try
+        {
+            using var imageStream = LockScreen.GetImageStream();
+            using var stream = imageStream.AsStreamForRead();
+            using var source = Image.FromStream(stream);
+            return new Bitmap(source);
+        }
+        catch (Exception ex)
+        {
+            Log.Write($"Could not read the Windows lock screen wallpaper: {ex.Message}");
+            return null;
         }
     }
 
@@ -111,6 +132,9 @@ internal sealed class OverlayManager : IDisposable
                 Log.Write($"Failed to close an overlay: {ex}");
             }
         }
+
+        _lockScreenImage?.Dispose();
+        _lockScreenImage = null;
     }
 
     private void OnDisplaySettingsChanged(object? sender, EventArgs e)

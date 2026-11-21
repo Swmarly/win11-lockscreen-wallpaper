@@ -22,7 +22,7 @@ if (-not (Get-PSDrive -Name Cert -ErrorAction SilentlyContinue)) {
 
 $scriptDir  = $PSScriptRoot
 $repoRoot   = Split-Path $scriptDir -Parent
-$publishDir = Join-Path $repoRoot 'src\LockScreenWallpaper\bin\Release\net8.0-windows\publish'
+$publishDir = Join-Path $repoRoot 'src\LockScreenWallpaper\bin\Release\net8.0-windows10.0.19041.0\publish'
 $cerPath    = Join-Path $scriptDir 'LockScreenWallpaper.cer'
 $installDir = Join-Path $env:ProgramFiles 'LockScreenWallpaper'
 

@@ -45,6 +45,18 @@ internal sealed class TrayApplicationContext : ApplicationContext
     {
         var menu = new ContextMenuStrip();
 
+        var syncItem = new ToolStripMenuItem("Sync with Windows lock screen")
+        {
+            CheckOnClick = true,
+        };
+        menu.Opening += (_, _) => syncItem.Checked = _settings.SyncLockScreenWallpaper;
+        syncItem.Click += (_, _) =>
+        {
+            _settings.SyncLockScreenWallpaper = syncItem.Checked;
+            _settings.Save();
+        };
+        menu.Items.Add(syncItem);
+
         var setDefaultItem = new ToolStripMenuItem("Set default wallpaper...");
         setDefaultItem.Click += (_, _) => SetDefaultImage();
         menu.Items.Add(setDefaultItem);
@@ -151,6 +163,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         switch (e.Reason)
         {
             case SessionSwitchReason.SessionLock:
+                _previewTimer.Stop();
                 _settings = AppSettings.Load();
                 _overlayManager.ShowAll(_settings);
                 Log.Write("  overlay shown");
@@ -201,6 +214,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private void ExitApplication()
     {
         SystemEvents.SessionSwitch -= OnSessionSwitch;
+        _previewTimer.Dispose();
         _overlayManager.Dispose();
         _trayIcon.Visible = false;
         _trayIcon.Dispose();
